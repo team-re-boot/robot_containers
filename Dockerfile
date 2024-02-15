@@ -1,3 +1,4 @@
+FROM --platform=${BUILDPLATFORM} impactaky/mc-ubuntu22.04-${TARGETARCH}-host:2.0.0 as mimic-host
 FROM docker.io/hakuturu583/cuda_ros:lt4-humble-cuda-12.2.2-devel as build_stage
 SHELL ["/bin/bash", "-c"]
 
@@ -22,7 +23,11 @@ RUN rosdep init && rosdep update
 RUN source /opt/ros/$ROS_DISTRO/setup.bash && \
     apt-get update && \
     DEBIAN_FRONTEND=noninteractive \
-    rosdep install -iry --from-paths src && \
-    colcon build --install-base /base_packages \
+    rosdep install -iry --from-paths src \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
+
+COPY --from=mimic-host / /mimic-cross
+RUN /mimic-cross/mimic-cross.deno/setup.sh
+
+RUN source /opt/ros/$ROS_DISTRO/setup.bash && MIMIC_CROSS_DISABLE=1 colcon build --install-base /base_packages
