@@ -39,7 +39,7 @@ RUN source /opt/ros/$ROS_DISTRO/setup.bash && \
 COPY --from=mimic-host / /mimic-cross
 RUN /mimic-cross/mimic-cross.deno/setup.sh
 
-RUN source /opt/ros/$ROS_DISTRO/setup.bash && \
+RUN --mount=type=cache,target=$HOME/.cache/ccache/ source /opt/ros/$ROS_DISTRO/setup.bash && \
     MIMIC_CROSS_DISABLE=1 colcon build --install-base /base_packages \
         --cmake-args -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache\
         --event-handlers console_cohesion+
