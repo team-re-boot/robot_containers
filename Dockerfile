@@ -8,9 +8,16 @@ SHELL ["/bin/bash", "-c"]
 RUN apt-get update && \
     DEBIAN_FRONTEND=noninteractive \
     apt-get install -y \
-    python3-vcstool git python3-colcon-common-extensions python3-rosdep \
+    python3-vcstool git python3-colcon-common-extensions python3-rosdep ccache \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
+
+RUN mkdir -p ~/.cache/ccache && echo "max_size = 60G" > ~/.cache/ccache/ccache.conf
+ENV USE_CCACHE 1
+ENV PATH "/usr/lib/ccache:${PATH}"
+ENV CC "/usr/lib/ccache/gcc"
+ENV CXX "/usr/lib/ccache/g++"
+ENV CCACHE_DIR "$HOME/.cache/ccache/"
 
 RUN mkdir -p robocup_ws/src
 WORKDIR robocup_ws/src
@@ -34,9 +41,7 @@ RUN /mimic-cross/mimic-cross.deno/setup.sh
 
 RUN source /opt/ros/$ROS_DISTRO/setup.bash && \
     MIMIC_CROSS_DISABLE=1 colcon build --install-base /base_packages \
-        # --cmake-args -DCMAKE_SYSTEM_PROCESSOR=aarch64 \
-        #     -DCMAKE_CXX_FLAGS="-march=armv8.2-a;-mtune=cortex-a78ae;-mcpu=cortex-a78ae" \
-        #     -DCMAKE_C_FLAGS="-march=armv8.2-a;-mtune=cortex-a78ae;-mcpu=cortex-a78ae" \
+        --cmake-args -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache\
         --event-handlers console_cohesion+
 
 ## Build robocup software
