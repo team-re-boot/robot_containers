@@ -2,4 +2,4 @@ repositories:
   libtorch_vendor:
     type: git
     url: https://github.com/team-re-boot/libtorch_vendor.git
-    version: master
+    version: feature/tensorrt
